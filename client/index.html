@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Streamer</title>
+</head>
+<body>
+    <h1>Audio Streamer</h1>
+    <div>
+        <input type="radio" name="showBroadcast" checked>
+        <label for="showBroadcast">Broadcast Audio</label>
+        <input type="radio" name="listenBroadcast">
+        <label for="listenBroadcast">Listen to Audio</label>
+
+        <div name="broadcastDiv">
+            <h2>Broadcast your Audio</h2>
+            <label for="audioSource">Select your Audio Source</label>
+            <select name="audioSource" id="audioSource">
+            </select>
+            <progress id="audioLevel" value="32" max="100"> 32% </progress>
+            <br>
+            <label for="broadcastChannel">Select the Channel you want to Broadcast on</label>
+            <select name="broadcastChannel" id="broadcastChannel">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+            </select><br>
+            <button name="goLive">Go Live</button>
+        </div>
+    </div>
+</body>
+<script src="./index.js"></script>
+</html>
