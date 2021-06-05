@@ -19,7 +19,7 @@ async function populateAudioDeviceSelect () {
         let option = document.createElement('option');
         option.setAttribute('value',device.deviceId);
         option.textContent = device.label;
-        document.getElementById('audioSource').appendChild(option);
+        document.getElementById('audioSource').appendChild(option); 
     });
 }
 
@@ -36,13 +36,31 @@ const displaySoundLevels = function () {
     document.getElementById('audioLevel').value = Math.round(avg);
 }
 
+const sendAudioData = function (channelData) {
+    let bianryRep = new Uint8Array(channelData.buffer);
+    let buffer = buffer.allocUnsafe(bianryRep);
+}
+
 const handleAudioData = function (event) {
-    // console.log(event.inputBuffer.getChannelData(0));
+    // handleAudioData(event.inputBuffer.getChannelData(0));
     displaySoundLevels();
+}
+
+const showLiveStatus = function(bool) {
+    if( bool !== false ) {
+        document.getElementById('broadcastStatus').style.display = "block";
+        document.querySelector('button[name="goLive"]').textContent = "Stop Broadcast";
+    }
+    else {
+        document.getElementById('broadcastStatus').style.display = "none";    
+        document.querySelector('button[name="goLive"]').textContent = "Go Live";
+    }
 }
 
 const startStream = function () {
     STREAMING = true;
+
+    showLiveStatus();
 
     navigator.mediaDevices.getUserMedia({
         audio:{
@@ -81,6 +99,8 @@ const startStream = function () {
 const stopStream = function () {
     STREAMING = false;
 
+    showLiveStatus(false);
+
     if( streamObject !== null ) {
         streamObject.controller.audioContext.close();
         streamObject.controller.analyzer.disconnect();
@@ -89,6 +109,8 @@ const stopStream = function () {
         streamObject.controller.javascriptNode.removeEventListener('audioprocess',handleAudioData);
 
         streamObject = null;
+
+        document.getElementById('audioLevel').value = 0;
     }
 }
 
