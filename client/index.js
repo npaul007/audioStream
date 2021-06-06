@@ -1,5 +1,6 @@
 STREAMING = false;
 streamObject = null;
+socket = null;
 
 const getAudioDevices = function () {
     return new Promise(function(resolve,reject) {
@@ -37,12 +38,17 @@ const displaySoundLevels = function () {
 }
 
 const sendAudioData = function (channelData) {
-    let bianryRep = new Uint8Array(channelData.buffer);
-    let buffer = buffer.allocUnsafe(bianryRep);
+    let message = {
+        buffer:channelData.buffer,
+        channel:document.getElementById('broadcastChannel').value
+    }
+    if( socket ) {
+        socket.send(JSON.stringify(message));
+        console.log('sent to server',message);
+    }
 }
-
 const handleAudioData = function (event) {
-    // handleAudioData(event.inputBuffer.getChannelData(0));
+    sendAudioData(event.inputBuffer.getChannelData(0));
     displaySoundLevels();
 }
 
@@ -57,10 +63,38 @@ const showLiveStatus = function(bool) {
     }
 }
 
+const initWebSocketConnection = function () {
+    socket = new WebSocket('ws://localhost:3000');
+
+    socket.onopen = function() {
+        console.log('Connected to websocket server');
+    }
+
+    socket.onmessage = function (message) {
+        console.log(message);
+    }
+
+    socket.onerror = function(err) {
+        console.log(err.toString());
+    }
+
+    socket.onclose = function() {
+        console.log('socket closed');
+    }
+}
+
+const unInitWebSocketConnection = function () {
+    if( socket !== null ) {
+        socket.close();
+    }
+    socket = null;
+}
+
 const startStream = function () {
     STREAMING = true;
 
     showLiveStatus();
+    initWebSocketConnection();
 
     navigator.mediaDevices.getUserMedia({
         audio:{
@@ -100,6 +134,7 @@ const stopStream = function () {
     STREAMING = false;
 
     showLiveStatus(false);
+    unInitWebSocketConnection();
 
     if( streamObject !== null ) {
         streamObject.controller.audioContext.close();
