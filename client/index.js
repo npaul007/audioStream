@@ -38,13 +38,9 @@ const displaySoundLevels = function () {
 }
 
 const sendAudioData = function (channelData) {
-    let message = {
-        buffer:channelData.buffer,
-        channel:document.getElementById('broadcastChannel').value
-    }
     if( socket ) {
-        socket.send(JSON.stringify(message));
-        console.log('sent to server',message);
+        socket.send(channelData.buffer);
+        console.log('sent to server',channelData.buffer);
     }
 }
 const handleAudioData = function (event) {
@@ -68,6 +64,7 @@ const initWebSocketConnection = function () {
 
     socket.onopen = function() {
         console.log('Connected to websocket server');
+        socket.send("broadcaster");    
     }
 
     socket.onmessage = function (message) {
