@@ -39,8 +39,9 @@ const displaySoundLevels = function () {
 
 const sendAudioData = function (channelData) {
     if( socket ) {
-        socket.send(channelData.buffer);
-        console.log('sent to server',channelData.buffer);
+        let buffer = channelData.buffer;
+        socket.send(buffer);
+        console.log('sent to server',buffer);
     }
 }
 const handleAudioData = function (event) {
