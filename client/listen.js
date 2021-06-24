@@ -1,26 +1,34 @@
 socket = null;
 STREAMING = false;
-bufferQueue = [];
+bufferQueue = new ArrayBuffer();
 playbackInterval = null;
 playing = false;
 
-const audioPlay = function (blob) {
+const audioPlay = function () {
     const context = new AudioContext();
     const source = context.createBufferSource();
-
+    
     source.onended = function () {
         playing = false;
     }
 
-    let fileReader = new FileReader();
-    
-    fileReader.onloadend = () => {
-        source.buffer = context.decodeAudioData(fileReader.result);
-        source.connect(context.destination);
-        source.start();
+    let buffer = context.createBuffer(2, context.sampleRate * 3, context.sampleRate);
+
+    let tmp = new Uint8Array(bufferQueue.byteLength);
+    tmp.set(bufferQueue,0);
+
+    bufferQueue = new Uint8Array(100);
+
+    // `data` comes from your Websocket, first convert it to Float32Array
+    for(let i = 0; i < buffer.numberOfChannels; i++) {
+        buffer.getChannelData(i).set(tmp.buffer);
     }
+
+    source.buffer = buffer;
     
-    fileReader.readAsArrayBuffer(blob);
+    // Then output to speaker for example
+    source.connect(context.destination);
+    source.start();
   };
 
 const updateListenBtnStatus = function (bool) {
@@ -47,8 +55,17 @@ const initWebSockets = function () {
         socket.send("listener");    
     }
 
-    socket.onmessage = function (message) {
-       bufferQueue.push(message.data);
+    socket.onmessage = function (message) {       
+       let fileReader = new FileReader();
+
+       fileReader.onloadend = () => {
+            let tmp = new Uint8Array(bufferQueue.byteLength + fileReader.result.byteLength);
+            tmp.set(new Uint8Array(bufferQueue), 0);
+            tmp.set(new Uint8Array(fileReader.result), bufferQueue.byteLength);
+            bufferQueue = tmp.buffer;
+       }
+    
+        fileReader.readAsArrayBuffer(message.data);
     }
 
     socket.onerror = function(err) {
@@ -71,10 +88,11 @@ const unInitPlaybackInterval = function () {
 
 const initPlaybackInterval = function () {
     playbackInterval = setInterval(() => {
-        if( playing == false && bufferQueue.length > 0 ) {
-            audioPlay(bufferQueue.shift());
+        if( playing == false && bufferQueue.byteLength > 0 ) {
+            playing = true;
+            audioPlay();
         }
-    }, 100);
+    }, 10000);
 }
 
 const stopStream = function () {
